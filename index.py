@@ -1,15 +1,12 @@
-from flask import Flask, Response,render_template, request
-from urllib.parse import urlparse
+from flask import Flask, Response, request
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
-import re,struct, sys, os, time,requests
-import logging
+import re,struct, sys, os, time,requests,logging
 logging.basicConfig(filename = "logfile.log",
                     filemode = "w",
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 app = Flask(__name__)
-
 
 if os.environ.get("TOKEN"):
     updater = Updater(os.environ.get("TOKEN"), use_context=True)
@@ -27,19 +24,22 @@ def show():
 @app.route('/u/<path:users>/t/<path:texts>', methods=['POST'])
 def message_push(texts,users):
     if not texts and not users:
-        return render_template('404.html'), 404
+        return {'code':404,'msg':'not find'}
     print(texts,users)
     updater.bot.send_message(text=texts, chat_id=users)
     return {'code':200}
+
 # ip
 @app.route('/ip', methods=['GET'])
 def ip():
     return Response(request.remote_addr, mimetype="text/text")
+
 # 404
 @app.errorhandler(404)
 def page_not_found(error):
     return {'code':404,'msg':'not find'}
 
-
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=80, debug=True)
+    print(os.getenv("PORT",default=5000))
+    print(os.environ.get("PORT"))
+    app.run(debug=True, port=os.environ.get("PORT"))
